@@ -1,0 +1,148 @@
+### Open dataset from database
+
+tbl(con2, sql("SELECT *
+FROM boeien.dbo.Havengeul_GSM_EXOData"))
+
+tbl <- tbl(con2, sql("SELECT *
+FROM boeien.dbo.Havengeul_GSM_EXOData"))
+tbl1 <- as.data.frame(tbl)
+
+
+### Identify outliers 
+find_outliers <- function(parameter, col_name) {
+  Q1 <- quantile(parameter, 0.25, na.rm = TRUE)
+  Q3 <- quantile(parameter, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  lower_bound <- Q1 - 1.5 * IQR
+  upper_bound <- Q3 + 1.5 * IQR
+  
+  # Find the indices of outliers
+  outlier_indices <- which(parameter < lower_bound | parameter > upper_bound)
+  
+  if (length(outlier_indices) > 0) {
+    # Create a data frame with the results
+    result_df <- data.frame(ID = outlier_indices, ColumnName = col_name)
+    return(result_df)
+  } else {
+    return(NULL)
+  }
+}
+
+# Initialize an empty data frame to store the results
+outlier_results <- data.frame(ID = integer(0), ColumnName = character(0))
+
+# Loop through each column (parameter) and find outliers
+for (col_name in colnames(tbl1)) {
+  outliers_for_column <- find_outliers(tbl1[[col_name]], col_name)
+  if (!is.null(outliers_for_column)) {
+    outlier_results <- rbind(outlier_results, outliers_for_column)
+  }
+}
+
+# Print the data frame containing outlier locations
+print(outlier_results)
+
+table(outlier_results$ColumnName)
+
+
+
+#### Now with proper code from Hans
+library(DBI)
+## Taxonomic Control (QC)
+
+queryTaxon <- "
+WITH naam_verschillend AS (
+  SELECT T.id as taxon_id,T.aphiaId AS taxon_aphiaid,A.id AS aphia_id,
+         T.name AS taxon_name,A.tu_displayname AS aphia_name
+  FROM dbo.Taxon T
+  LEFT JOIN dbo.import_aphia_tu A ON T.aphiaId=A.id
+  WHERE T.name<>tu_displayname),
+geen_aphiaid AS (
+  SELECT T.id as taxon_id,T.aphiaId AS taxon_aphiaid,NULL AS aphia_id,
+         T.name AS taxon_name,NULL AS aphia_name
+  FROM dbo.Taxon T
+  WHERE T.aphiaId IS NULL),
+alles AS (
+  SELECT * FROM naam_verschillend UNION ALL SELECT * FROM geen_aphiaid),
+doe_een_voorstel AS (
+  SELECT taxon_id,taxon_aphiaid,A.id AS voorstel_aphiaid,
+        taxon_name,aphia_name,A.tu_displayname AS voorstel_name
+  FROM alles T
+  LEFT JOIN dbo.import_aphia_tu A ON LOWER(TRIM(T.taxon_name))=LOWER(TRIM(COALESCE(tu_displayname,'')))
+)
+SELECT * FROM doe_een_voorstel
+ORDER BY Taxon_id,voorstel_aphiaid;
+"
+resultTax <- dbGetQuery(con3, queryTaxon)
+TxnQC <- as_tibble(resultTax)
+TxnQC
+
+
+
+## Unit Quality Control 
+
+queryUnit <- "
+WITH  alleparameters AS (
+  SELECT  DISTINCT SP.originalParameterUnit,P.unit,P.id AS parameterid
+  FROM dbo.SerPar SP
+  JOIN dbo.Parameter P ON SP.parameterId=P.id
+  WHERE SP.originalParameterUnit<>P.unit)
+SELECT originalParameterUnit,unit,
+  STRING_AGG(parameterid,',') AS parameterids
+FROM alleparameters
+GROUP BY originalParameterUnit,unit;
+"
+
+resultUnit <- dbGetQuery(con3, queryUnit)
+UnitQC <- as_tibble(resultUnit)
+UnitQC
+
+
+#Station names QC
+
+queryStation <- "
+WITH location AS (
+    SELECT stationName,location.Lat AS latitude,location.Long AS longitude
+    FROM Serie
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValAclass
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValAVariableStat
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValBclass
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValBVariableStat
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValXVariable
+    WHERE stationName IS NOT NULL
+
+),rounded AS (
+  SELECT stationName,
+    -- atal cijfers na de komma: 4 = 5 a 10m
+    CAST(latitude AS NUMERIC(10,4)) AS latitude,
+    CAST(longitude AS NUMERIC(10,4)) AS longitude
+  FROM location
+  --Activeer om te begrenzen tot BE/NL, maar je verliest ook de 0 en null en onzinnige waarden
+  --WHERE latitude BETWEEN 49.5 AND 53.6 AND longitude BETWEEN 2.5 AND 7.1
+  )
+SELECT latitude,longitude,stationName,COUNT(*) AS aantal FROM rounded
+GROUP BY latitude,longitude,stationName
+ORDER BY latitude,longitude,stationName;
+"
+
+resultStation <- dbGetQuery(con3, queryStation)
+StationQC <- as_tibble(resultStation)
+StationQC
+
+
+rm(result)
