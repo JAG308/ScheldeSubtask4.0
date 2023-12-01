@@ -1,0 +1,53 @@
+
+
+# Install and load required packages
+install.packages(c("ggplot2", "dplyr", "viridis"))
+
+library(ggplot2)
+library(dplyr)
+library(viridis)
+
+##### Create a heatmap of the measurements frequency of all the parameters at once.
+
+# Create a frequency table
+frequency_table <- DefoExp %>%
+  group_by(stationname, Year) %>%
+  summarise(frequency = n())
+
+# Create a heatmap
+heatmap_plotGen <- ggplot(frequency_table, aes(x = stationname, y = Year, fill = frequency)) +
+  geom_tile() +
+  scale_fill_gradient(low = "beige", high = "darkgreen") +
+  labs(x = "Station", y = "Year", title = "Parameter Frequency Heatmap")
+
+# Display the plot
+print(heatmap_plotGen)
+
+
+##### Now create one heatmap per parameter.
+
+
+# Assuming your dataset has columns like stationname, year, amonium, conductivity, ph, etc.
+# Dataset needs the columns: 'stationname' and 'year' plus the parameters to plot.
+
+# Gather all the parameter columns names excluding the ones like 'stationname', 'year', etc.
+param_columns <- colnames(DefoExp)[!(colnames(DefoExp) %in% c('stationname', 'Year', 'standardparameterId', 'Latitude', 'Longitude', 'datetime'))]
+
+# Loop over each parameter column and create a heatmap
+for (param in param_columns) {
+  # Create a frequency table
+  frequency_table <- DefoExp %>%
+    group_by(stationname, Year, !!sym(param)) %>%
+    summarise(frequency = n())
+  
+  # Create a heatmap for the current parameter
+  heatmap_plot <- ggplot(frequency_table, aes(x = stationname, y = Year, fill = frequency)) +
+    geom_tile() +
+    scale_fill_gradient(low = "beige", high = "darkgreen") +
+    labs(x = "Station", y = "Year", title = paste("Parameter:", param, "Frequency Heatmap"))
+  
+  # Display the plot or save it to a file
+  print(heatmap_plot)
+  # ggsave(paste0("heatmap_", param, ".png"), plot = heatmap_plot)  # Uncomment this line to save the plot to a file
+}
+
