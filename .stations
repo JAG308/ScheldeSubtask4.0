@@ -6,9 +6,6 @@ library(dplyr)
 
 StationQC
 
-# Get rid of Na values
-StationClean <- na.omit(StationQC)
-
 #Create bin with coordinates range
 bin_size <- 0.15
 
@@ -23,3 +20,69 @@ grouped_Station <- StationClean %>%
   summarise(stationName = names(sort(table(stationName), decreasing = TRUE)[1]),  # Keep the most frequent station name
             latitude = mean(latitude),
             longitude = mean(longitude))
+
+
+# Standarise both tables so they have the same format
+
+SdStation <- grouped_Station %>% relocate(latitude, .before=lat_bin)
+SdStation <- SdStation %>% relocate(longitude, .before=lat_bin)
+SdStation <- SdStation %>% relocate(stationName, .before=lat_bin)
+SdStation <- SdStation[,1:3]
+
+StationQC <- StationQC[,1:3]
+
+######## THE  CODE
+
+
+# Assuming your dataframes are named SdStation and StationQC
+# Assuming they have these three columns: "latitude", "longitude", and "stationName"
+
+# Initialize a variable to count total mismatches
+total_mismatches <- 0
+
+# Initialize a list to store details of mismatches
+mismatch_details <- list()
+
+# Iterate over each row in StationQC
+for (i in 1:nrow(StationQC)) {
+  # Extract stationName and corresponding coordinates from StationQC
+  current_qc_station <- StationQC[i, ]
+  stationName_qc <- current_qc_station$stationName
+  lat_qc <- current_qc_station$latitude
+  lon_qc <- current_qc_station$longitude
+  
+  # Find all rows in SdStation with the same stationName
+  corresponding_rows <- SdStation %>% filter(stationName == stationName_qc)
+  
+  # Check if coordinates match
+  if (nrow(corresponding_rows) > 0) {
+    lat_sd <- corresponding_rows$latitude
+    lon_sd <- corresponding_rows$longitude
+    
+    # Check if any of the coordinates match
+    if (any(lat_sd == lat_qc & lon_sd == lon_qc, na.rm = TRUE)) {
+      # Coordinates match, continue to the next row in StationQC
+      next
+    }
+  }
+  
+  # Update the total count of mismatches
+  total_mismatches <- total_mismatches + 1
+  
+  # Store details of mismatches
+  mismatch_details[[stationName_qc]] <- current_qc_station
+}
+
+# Display the total number of mismatches
+cat("Total number of rows with mismatched coordinates: ", total_mismatches, "\n")
+
+# Display details of mismatches
+if (total_mismatches > 0) {
+  cat("Details of mismatched rows by station in StationQC:\n")
+  print(mismatch_details)
+}
+
+
+
+
+
