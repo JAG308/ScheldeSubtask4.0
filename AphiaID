@@ -1,14 +1,37 @@
-# Table extracted from DB by Hans
+#### Taxonomic QualityControl
+## Once connected to database with connnectionSQL code.
+
+queryTaxon <- "
+WITH naam_verschillend AS (
+  SELECT T.id as taxon_id,T.aphiaId AS taxon_aphiaid,A.id AS aphia_id,
+         T.name AS taxon_name,A.tu_displayname AS aphia_name
+  FROM dbo.Taxon T
+  LEFT JOIN dbo.import_aphia_tu A ON T.aphiaId=A.id
+  WHERE T.name<>tu_displayname),
+geen_aphiaid AS (
+  SELECT T.id as taxon_id,T.aphiaId AS taxon_aphiaid,NULL AS aphia_id,
+         T.name AS taxon_name,NULL AS aphia_name
+  FROM dbo.Taxon T
+  WHERE T.aphiaId IS NULL),
+alles AS (
+  SELECT * FROM naam_verschillend UNION ALL SELECT * FROM geen_aphiaid),
+doe_een_voorstel AS (
+  SELECT taxon_id,taxon_aphiaid,A.id AS voorstel_aphiaid,
+        taxon_name,aphia_name,A.tu_displayname AS voorstel_name
+  FROM alles T
+  LEFT JOIN dbo.import_aphia_tu A ON LOWER(TRIM(T.taxon_name))=LOWER(TRIM(COALESCE(tu_displayname,'')))
+)
+SELECT * FROM doe_een_voorstel
+ORDER BY Taxon_id,voorstel_aphiaid;
+"
+resultTax <- dbGetQuery(con2, queryTaxon)
+TxnQC <- as_tibble(resultTax)
 TxnQC
 
 # Install worms package
 
 install.packages("worrms")
 library('worrms')
-
-wm_id2name(id= 149447)
-
-wm_id2name_(id = c(105706, 126436))
 
 library(dplyr)
 
