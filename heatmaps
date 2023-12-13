@@ -8,8 +8,11 @@ library(dplyr)
 library(viridis)
 
 ##### Create a heatmap of the measurements frequency of all the parameters at once.
+## Following code creates one heatmap, representing the frequency of measurements throughout all stations and in all the years represented in your dataset together.
+# Dataset must have columns: ' stationname' and 'Year'.
 
 # Create a frequency table
+#This table represents the stations per year where measurements have been taken.
 frequency_table <- DefoExp %>%
   group_by(stationname, Year) %>%
   summarise(frequency = n())
@@ -25,12 +28,9 @@ print(heatmap_plotGen)
 
 
 ##### Now create one heatmap per parameter.
+# columns the dataset must have: 'stationname', 'Year', 'standardparameterId', 'Latitude', 'Longitude', 'datetime' , and parameters to be represented.
 
-
-# Assuming your dataset has columns like stationname, year, amonium, conductivity, ph, etc.
-# Dataset needs the columns: 'stationname' and 'year' plus the parameters to plot.
-
-# Gather all the parameter columns names excluding the ones like 'stationname', 'year', etc.
+# Gather all the parameter columns in one table excluding columns such: 'stationname', 'year', etc.
 param_columns <- colnames(DefoExp)[!(colnames(DefoExp) %in% c('stationname', 'Year', 'standardparameterId', 'Latitude', 'Longitude', 'datetime'))]
 
 # Loop over each parameter column and create a heatmap
