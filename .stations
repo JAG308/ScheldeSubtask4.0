@@ -1,10 +1,57 @@
+######## Station names QC
+#Once connected to the ScheldeMonitor DB with the SQL connection code
+# Retrieve quality control station table from the database.
 
-## Stations and coordinates
-library(dplyr)
+queryStation <- "
+WITH location AS (
+    SELECT stationName,location.Lat AS latitude,location.Long AS longitude
+    FROM Serie
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValAclass
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValAVariableStat
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValBclass
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValBVariableStat
+    WHERE stationName IS NOT NULL
+  UNION ALL
+    SELECT stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValXVariable
+    WHERE stationName IS NOT NULL
 
-#List of stations and coordinates retrieved from database
+),rounded AS (
+  SELECT stationName,
+    -- atal cijfers na de komma: 4 = 5 a 10m
+    CAST(latitude AS NUMERIC(10,4)) AS latitude,
+    CAST(longitude AS NUMERIC(10,4)) AS longitude
+  FROM location
+  --Activeer om te begrenzen tot BE/NL, maar je verliest ook de 0 en null en onzinnige waarden
+  --WHERE latitude BETWEEN 49.5 AND 53.6 AND longitude BETWEEN 2.5 AND 7.1
+  )
+SELECT latitude,longitude,stationName,COUNT(*) AS aantal FROM rounded
+GROUP BY latitude,longitude,stationName
+ORDER BY latitude,longitude,stationName;
+"
 
+resultStation <- dbGetQuery(con3, queryStation)
+StationQC <- as_tibble(resultStation)
 StationQC
+
+
+#### Now compare stations from your dataset with the stations StationQC.
+
+### Remove ~400 lines with NA values from DB Station list
+
+StationClean <- na.omit(StationQC)
 
 #Create bin with coordinates range
 bin_size <- 0.15
@@ -21,21 +68,22 @@ grouped_Station <- StationClean %>%
             latitude = mean(latitude),
             longitude = mean(longitude))
 
+GroupedStation
 
-# Standarise both tables so they have the same format
+# Standarise both tables so they have the same format.
+# Both tables should have the columns: 'latitude', 'longitude', 'stationName'
 
-SdStation <- grouped_Station %>% relocate(latitude, .before=lat_bin)
-SdStation <- SdStation %>% relocate(longitude, .before=lat_bin)
-SdStation <- SdStation %>% relocate(stationName, .before=lat_bin)
-SdStation <- SdStation[,1:3]
+#SdStation <- grouped_Station %>% relocate(latitude, .before=lat_bin)
+#SdStation <- SdStation %>% relocate(longitude, .before=lat_bin)
+#SdStation <- SdStation %>% relocate(stationName, .before=lat_bin)
+#SdStation <- SdStation[,1:3]
 
 StationQC <- StationQC[,1:3]
 
-######## THE  CODE
-
+#### Once the input table and the DB table look alike
+####### Now run the Quality Control
 
 # Assuming your dataframes are named SdStation and StationQC
-# Assuming they have these three columns: "latitude", "longitude", and "stationName"
 
 # Initialize a variable to count total mismatches
 total_mismatches <- 0
@@ -73,10 +121,10 @@ for (i in 1:nrow(StationQC)) {
   mismatch_details[[stationName_qc]] <- current_qc_station
 }
 
-# Display the total number of mismatches
+### Display the total number of mismatches
 cat("Total number of rows with mismatched coordinates: ", total_mismatches, "\n")
 
-# Display details of mismatches
+### Display details of each mismatch
 if (total_mismatches > 0) {
   cat("Details of mismatched rows by station in StationQC:\n")
   print(mismatch_details)
