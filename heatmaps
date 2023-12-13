@@ -37,14 +37,14 @@ param_columns <- colnames(DefoExp)[!(colnames(DefoExp) %in% c('stationname', 'Ye
 for (param in param_columns) {
   # Create a frequency table
   frequency_table <- DefoExp %>%
-    group_by(stationname, Year, !!sym(param)) %>%
+    group_by(Year, stationname, !!sym(param)) %>%
     summarise(frequency = n())
   
   # Create a heatmap for the current parameter
-  heatmap_plot <- ggplot(frequency_table, aes(x = stationname, y = Year, fill = frequency)) +
+  heatmap_plot <- ggplot(frequency_table, aes(x = Year, y = stationname, fill = frequency)) +
     geom_tile() +
     scale_fill_gradient(low = "beige", high = "darkgreen") +
-    labs(x = "Station", y = "Year", title = paste("Parameter:", param, "Frequency Heatmap"))
+    labs(x = "Year", y = "Station", title = paste("Parameter:", param, "Frequency Heatmap"))
   
   # Display the plot or save it to a file
   print(heatmap_plot)
