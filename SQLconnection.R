@@ -1,5 +1,5 @@
 # Connecting to database from R studio.
-3 different ways presented:
+
 
 library(DBI)
 library(RODBC)

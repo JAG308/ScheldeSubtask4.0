@@ -42,7 +42,7 @@ GROUP BY latitude,longitude,stationName
 ORDER BY latitude,longitude,stationName;
 "
 
-resultStation <- dbGetQuery(con3, queryStation)
+resultStation <- dbGetQuery(con2, queryStation)
 StationQC <- as_tibble(resultStation)
 StationQC
 
@@ -68,15 +68,15 @@ grouped_Station <- StationClean %>%
             latitude = mean(latitude),
             longitude = mean(longitude))
 
-GroupedStation
+grouped_Station
 
 # Standarise both tables so they have the same format.
 # Both tables should have the columns: 'latitude', 'longitude', 'stationName'
 
-#SdStation <- grouped_Station %>% relocate(latitude, .before=lat_bin)
-#SdStation <- SdStation %>% relocate(longitude, .before=lat_bin)
-#SdStation <- SdStation %>% relocate(stationName, .before=lat_bin)
-#SdStation <- SdStation[,1:3]
+SdStation <- grouped_Station %>% relocate(latitude, .before=lat_bin)
+SdStation <- SdStation %>% relocate(longitude, .before=lat_bin)
+SdStation <- SdStation %>% relocate(stationName, .before=lat_bin)
+SdStation <- SdStation[,1:3]
 
 StationQC <- StationQC[,1:3]
 
