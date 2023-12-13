@@ -1,0 +1,67 @@
+# Table extracted from DB by Hans
+TxnQC
+
+# Install worms package
+
+install.packages("worrms")
+library('worrms')
+
+wm_id2name(id= 149447)
+
+wm_id2name_(id = c(105706, 126436))
+
+library(dplyr)
+
+# Filter out rows with NA values
+filtered_table <- TxnQC %>%
+  filter(!is.na(taxon_aphiaid) & !is.na(aphia_name))
+
+# Print the number of filtered NA rows
+cat("Number of filtered NA rows:", nrow(TxnQC) - nrow(filtered_table), "\n\n")
+
+## Check aphiaID only first row
+
+#Filter NAs
+filtered_table <- TxnQC %>%
+  filter(!is.na(taxon_aphiaid) & !is.na(aphia_name))
+
+# Check the first row
+first_row_match <- with(filtered_table, {
+  first_row_id <- taxon_aphiaid[1]
+  first_row_name <- aphia_name[1]
+  
+  # Use wm_id2name function to get the taxonomic name for the AphiaID
+  taxonomic_name <- wm_id2name(first_row_id) 
+  
+  # Check if the taxonomic name matches the aphia_name
+  match_result <- taxonomic_name == first_row_name
+  
+  # Return the match result
+  match_result
+})
+
+
+print(first_row_match)
+
+
+# Now create a function to check all rows.
+
+# Define a function to check the match for a given row
+check_match <- function(row) {
+  # Convert row to a data frame (if it's not already)
+  row_df <- as.data.frame(row)
+  
+  # Use your wm_id2name function to get the taxonomic name for the AphiaID
+  taxonomic_name <- wm_id2name(row_df$taxon_aphiaid)
+  
+  # Check if the taxonomic name matches the aphia_name
+  match_result <- taxonomic_name == row_df$aphia_name
+  
+  # Return the match result
+  match_result
+}
+
+# Use lapply to apply the function to each row of TxnQC
+match_results_list <- lapply(split(filtered_table, seq(nrow(filtered_table))), check_match)
+# Print the results
+print(match_results_list)
