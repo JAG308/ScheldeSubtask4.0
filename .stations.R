@@ -2,6 +2,8 @@
 #Once connected to the ScheldeMonitor DB with the SQL connection code
 # Retrieve quality control station table from the database.
 
+Station_QualityC <- function(connection) {
+
 queryStation <- "
 WITH location AS (
     SELECT stationName,location.Lat AS latitude,location.Long AS longitude
@@ -129,8 +131,8 @@ if (total_mismatches > 0) {
   cat("Details of mismatched rows by station in StationQC:\n")
   print(mismatch_details)
 }
+}
 
 
-
-
+Station_QualityC(con2)
 
