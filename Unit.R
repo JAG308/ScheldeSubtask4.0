@@ -1,6 +1,9 @@
-# Once cconnected to the DB with connectionSQL
+# Once connected to the DB with connectionSQL
+# Retrieve table with parameter names and their unit counts. 
 
-queryUnit <- "
+Units_qualityC <- function(connection) {
+  # SQL Query
+  queryUnit <- "
 WITH  alleparameters AS (
   SELECT 
 	SP.originalParameterUnit,P.unit,
@@ -16,10 +19,13 @@ FROM alleparameters
 GROUP BY originalParameterName, originalParameterUnit
 ORDER BY originalParameterName, originalParameterUnit
 "
-           
-resultUnit <- dbGetQuery(con2, queryUnit)
-UnitQC <- as_tibble(resultUnit)
-UnitQC
+  
+  resultUnit <- dbGetQuery(con2, queryUnit)
+  UnitQC <- as_tibble(resultUnit)
+  UnitQC
+}
+
+Units_qualityC(con2)
 
 # Now select parameter of interest.
 
