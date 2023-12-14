@@ -1,7 +1,12 @@
 #### Taxonomic QualityControl
-## Once connected to database with connnectionSQL code.
+## Once connected to database with connnectionSQL code (con2).
 
-queryTaxon <- "
+library(dplyr)
+library(worrms)
+
+process_taxon_data <- function(connection) {
+  # SQL Query
+  query_taxon <- "
 WITH naam_verschillend AS (
   SELECT T.id as taxon_id,T.aphiaId AS taxon_aphiaid,A.id AS aphia_id,
          T.name AS taxon_name,A.tu_displayname AS aphia_name
@@ -23,74 +28,48 @@ doe_een_voorstel AS (
 )
 SELECT * FROM doe_een_voorstel
 ORDER BY Taxon_id,voorstel_aphiaid;
-"
-resultTax <- dbGetQuery(con2, queryTaxon)
-TxnQC <- as_tibble(resultTax)
-TxnQC
+  "
 
-# Install worms package
-
-install.packages("worrms")
-library('worrms')
-
-library(dplyr)
+# Execute SQL query
+result_tax <- dbGetQuery(connection, query_taxon)
+txn_qc <- as_tibble(result_tax)
 
 # Filter out rows with NA values
-filtered_table <- TxnQC %>%
+filtered_table <- txn_qc %>%
   filter(!is.na(taxon_aphiaid) & !is.na(aphia_name))
 
 # Print the number of filtered NA rows
-cat("Number of filtered NA rows:", nrow(TxnQC) - nrow(filtered_table), "\n\n")
+cat("Number of filtered NA rows:", nrow(txn_qc) - nrow(filtered_table), "\n\n")
 
-## Check aphiaID only first row
-
-#Filter NAs
-filtered_table <- TxnQC %>%
-  filter(!is.na(taxon_aphiaid) & !is.na(aphia_name))
-
-# Check the first row
-first_row_match <- with(filtered_table, {
-  first_row_id <- taxon_aphiaid[1]
-  first_row_name <- aphia_name[1]
-  
-  # Use wm_id2name function to get the taxonomic name for the AphiaID
-  taxonomic_name <- wm_id2name(first_row_id) 
-  
-  # Check if the taxonomic name matches the aphia_name
-  match_result <- taxonomic_name == first_row_name
-  
-  # Return the match result
-  match_result
-})
-
-
-print(first_row_match)
-
-
-# Now loop over all the rows.
-
-# Create vector to store your logical values.
+# Check aphiaID is correct in all rows of the dataset.
 results <- vector("logical", length = nrow(filtered_table))
 
 for (i in seq_len(nrow(filtered_table))) {
   row <- filtered_table[i, , drop = FALSE]
   
   tryCatch({
-  # Use wm_id2name function to get the taxonomic name for the AphiaID
-  taxonomic_name <- wm_id2name(row$taxon_aphiaid)
-  
-  # Check if the taxonomic name matches the aphia_name
-  match_result <- taxonomic_name == row$aphia_name
-  
-  # Store the match result in the results vector
-  results[i] <- all(match_result)
-}, error = function(e) {
-  # Handle the error (optional), just print a message
-  cat(sprintf("Error in row %d: %s\n", i, e$message), "\n")
-  # Set the result to FALSE (or NA)
-  results[i] <- FALSE
-})
+    # Use wm_id2name function to get the taxonomic name for the AphiaID
+    taxonomic_name <- wm_id2name(row$taxon_aphiaid)
+    
+    # Check if the taxonomic name matches the aphia_name
+    match_result <- taxonomic_name == row$aphia_name
+    
+    # Store the match result in the results vector
+    results[i] <- all(match_result)
+  }, error = function(e) {
+    # Handle the error (optional), for now, just print a message
+    cat(sprintf("Error in row %d: %s\n", i, e$message), "\n")
+    # Set the result to FALSE or NA, depending on your preference
+    results[i] <- FALSE
+  })
 }
-# Print() to see a list of TRUE/FALSE outputs. Table() for a summmary
+
+# Print or use the results as needed
 print(results)
 table(results)
+}
+
+# Call the function with your database connection
+# Assuming 'con2' is your database connection object
+process_taxon_data(con2)
+
