@@ -4,7 +4,7 @@
 library(dplyr)
 library(worrms)
 
-process_taxon_data <- function(connection) {
+AphiaID_QualityC <- function(connection) {
   # SQL Query
   query_taxon <- "
 WITH naam_verschillend AS (
@@ -71,5 +71,5 @@ table(results)
 
 # Call the function with your database connection
 # Assuming 'con2' is your database connection object
-process_taxon_data(con2)
+AphiaID_QualityC(con2)
 
