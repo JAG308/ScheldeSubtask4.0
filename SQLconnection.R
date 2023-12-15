@@ -1,20 +1,14 @@
 # Connecting to database from R studio.
 
-connectDB <- function(connection) {}
+# Install necessary packages
 
+#install.packages(c("DBI", "ROBDC", "odbc"))
 library(DBI)
 library(RODBC)
 library(odbc)
-library(dplyr)
-library(dbplyr)
 
-# Previous the 1st way, you need to set up the conection to the database
 
-# 1st way (This way connects directly with the "dataportal" database.
-
-#con1 <- dbConnect(odbc::odbc(), "SQLServer_DS")
-
-##2nd way 
+# It connects directly with the "dataportal" database.
 
 con2 <- dbConnect(odbc::odbc(),
 Driver    = "SQL Server", 
@@ -24,6 +18,7 @@ UID       = "rshiny",
 trusted_connection = 'yes',
 Port      = 1433)
 
-}
-                 
+
+### Now you can start running the Quality Control functions.
+
 
