@@ -3,6 +3,15 @@
 #Once connected to the ScheldeMonitor DB with the SQL connection code
 # Retrieve quality control station table from the database.
 
+#Install necessary packages.
+
+#install.packages("tibble")
+#install.packages("dplyr")
+
+library(tibble)
+library(dplyr)
+
+
 Station_QualityC <- function(connection) {
 
 queryStation <- "
@@ -124,16 +133,21 @@ for (i in 1:nrow(StationQC)) {
   mismatch_details[[stationName_qc]] <- current_qc_station
 }
 
-### Display the total number of mismatches
-cat("Total number of rows with mismatched coordinates: ", total_mismatches, "\n")
 
 ### Display details of each mismatch
 if (total_mismatches > 0) {
   cat("Details of mismatched rows by station in StationQC:\n")
   print(mismatch_details)
+  
+  
+  ### Display the total number of mismatches
+  cat("Total number of rows with mismatched coordinates: ", total_mismatches, "\n")
+  
+  
 }
 }
 
 
+# Function gives results after ~3 minutes
 Station_QualityC(con2)
 
