@@ -1,7 +1,24 @@
 
 ####### Identify outliers 
-# Create function to identify outliers
 
+
+Outliers_QualityC <- function(connection) {
+
+## Retrieve table from database
+## First you need to connect to database with 'ConnectionSQL' code
+
+queryUnit <- "
+SELECT *
+FROM boeien.dbo.Havengeul_GSM_EXOData
+"
+
+tbl <- dbGetQuery(con2, queryUnit)
+tbl1 <- as.data.frame(tbl)
+tbl1
+
+
+
+### Function to identify outliers 
 find_outliers <- function(parameter, col_name) {
   Q1 <- quantile(parameter, 0.25, na.rm = TRUE)
   Q3 <- quantile(parameter, 0.75, na.rm = TRUE)
@@ -24,11 +41,6 @@ find_outliers <- function(parameter, col_name) {
 # Initialize an empty data frame to store the results
 outlier_results <- data.frame(ID = integer(0), ColumnName = character(0))
 
-
-## Import your dataset in R as a new dataframe.
-# Make sure you remove all columns of your dataset that don't need to be assessed for outliers.
-# The function will give error if there is non-numeric data in the dataset.
-
 # Loop through each column (parameter) and find outliers
 for (col_name in colnames(tbl1)) {
   outliers_for_column <- find_outliers(tbl1[[col_name]], col_name)
@@ -37,11 +49,12 @@ for (col_name in colnames(tbl1)) {
   }
 }
 
-# Print the data frame containing outlier locations
-# Obtain the number of rows where there has been an outlier per column.
+## Print the data frame containing outliers locations
+##Obtain the number of rows where there has been an outlier per column
 print(outlier_results)
 
 #Obtain a table with a summary of the total outliers detected per column
 table(outlier_results$ColumnName)
 
+}
 
