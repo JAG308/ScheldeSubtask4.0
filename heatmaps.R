@@ -1,53 +1,37 @@
 
+#install.packages("devtools")
+library(devtools)
 
-# Install and load required packages
-install.packages(c("ggplot2", "dplyr", "viridis"))
+devtools::install_github("scheldemonitor/scheldemonitoR")
+library(usethis)
+library(scheldemonitoR)
 
-library(ggplot2)
-library(dplyr)
-library(viridis)
+# Run the function. In this case we are trying parameters 9694, 949 and 1074
 
-##### Create a heatmap of the measurements frequency of all the parameters at once.
-## Following code creates one heatmap, representing the frequency of measurements throughout all stations and in all the years represented in your dataset together.
-# Dataset must have columns: ' stationname' and 'Year'.
-
-# Create a frequency table
-#This table represents the stations per year where measurements have been taken.
-frequency_table <- DefoExp %>%
-  group_by(stationname, Year) %>%
-  summarise(frequency = n())
-
-# Create a heatmap
-heatmap_plotGen <- ggplot(frequency_table, aes(x = stationname, y = Year, fill = frequency)) +
-  geom_tile() +
-  scale_fill_gradient(low = "beige", high = "darkgreen") +
-  labs(x = "Station", y = "Year", title = "Parameter Frequency Heatmap")
-
-# Display the plot
-print(heatmap_plotGen)
-
-
-##### Now create one heatmap per parameter.
-# columns the dataset must have: 'stationname', 'Year', 'standardparameterId', 'Latitude', 'Longitude', 'datetime' , and parameters to be represented.
-
-# Gather all the parameter columns in one table excluding columns such: 'stationname', 'year', etc.
-param_columns <- colnames(DefoExp)[!(colnames(DefoExp) %in% c('stationname', 'Year', 'standardparameterId', 'Latitude', 'Longitude', 'datetime'))]
-
-# Loop over each parameter column and create a heatmap
-for (param in param_columns) {
-  # Create a frequency table
-  frequency_table <- DefoExp %>%
-    group_by(Year, stationname, !!sym(param)) %>%
-    summarise(frequency = n())
+heatmapsQC <- function() {
+  # 9694 is the parameter id for high tide in NAP
+  tide_data <- importAbioticData(9694, start = 2018, end = 2021)
   
-  # Create a heatmap for the current parameter
-  heatmap_plot <- ggplot(frequency_table, aes(x = Year, y = stationname, fill = frequency)) +
-    geom_tile() +
-    scale_fill_gradient(low = "beige", high = "darkgreen") +
-    labs(x = "Year", y = "Station", title = paste("Parameter:", param, "Frequency Heatmap"))
+  # plot available data
+  tide_availability_figures <- heatmapDataAvailability(tide_data, "high tide", "year", "station")
   
-  # Display the plot or save it to a file
-  print(heatmap_plot)
-  # ggsave(paste0("heatmap_", param, ".png"), plot = heatmap_plot)  # Uncomment this line to save the plot to a file
+  # Example with abiotic data ---------------------------------------------------------
+  # abiotic data #949 & 1074
+  fytoplankton_data <- importBioticData(1074, start = 2013, end = 2015, source = "imis")
+  
+  # correct datetime columname
+  colnames(fytoplankton_data)[colnames(fytoplankton_data) == "observationdate"] <- "datetime"
+  
+  # plot available data
+  heatmap_fyto <- heatmapDataAvailability(fytoplankton_data, "high tide", "year", "station")
+  
+  # Return the created plots
+  return(list(tide_availability_figures = tide_availability_figures, heatmap_fyto = heatmap_fyto))
 }
 
+# Call the function to run the analysis
+result <- heatmapsQC()
+
+# Access the results
+result$tide_availability_figures
+result$heatmap_fyto
