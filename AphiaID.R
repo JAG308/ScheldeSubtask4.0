@@ -65,11 +65,20 @@ for (i in seq_len(nrow(filtered_table))) {
 }
 
 # Print or use the results as needed
-print(results)
+#print(results)
 table(results)
+
+# Print only the FALSE results with their AphiaID and Aphia name
+false_results <- filtered_table[!results, c("taxon_aphiaid", "aphia_name")]
+
+if (nrow(false_results) > 0) {
+  cat("Rows with FALSE results:\n")
+  print(false_results)
+} else {
+  cat("No FALSE results found.\n")
+}
 }
 
 # Call the function with your database connection
-# Assuming 'con2' is your database connection object
 AphiaID_QualityC(con2)
 
