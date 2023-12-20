@@ -77,6 +77,6 @@ fytoplankton_outlier_analysis <- function(dataset_id, start_year, end_year, sour
  result <- fytoplankton_outlier_analysis(1074, start_year = 2013, end_year = 2015, source = "imis")
 
 
- table(numeric_outliers$ColumnName)
- tail(numeric_outliers, n=500)
+ print(result)
+
  
