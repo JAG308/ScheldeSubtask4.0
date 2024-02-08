@@ -1,6 +1,6 @@
 source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/heatmaps.R")
 
-# Define a function to run heatmapsQC with a specified parameter Id
+# Function heatmapsQC with a specified parameter Id
 run_heatmap_with_parameter <- function(parameter_id) {
   # Call heatmapsQC function with the specified parameter Id
   all_data <- importAbioticData(parameter_id, start = 2018, end = 2021)
@@ -11,7 +11,7 @@ run_heatmap_with_parameter <- function(parameter_id) {
   return(all_availability_figures)
 }
 
-# Example usage:
+# Set parameter Id
 parameter_id <- 461 # You can change this to any parameter Id you want to visualize
 heatmap_figures <- run_heatmap_with_parameter(parameter_id)
 
