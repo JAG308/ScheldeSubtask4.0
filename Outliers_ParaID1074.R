@@ -1,14 +1,15 @@
 
-
+# Load necessary libraries
 library(usethis)
 library(devtools)
 devtools::install_github("scheldemonitor/scheldemonitoR")
 library(scheldemonitoR)
 
-fytoplankton_outlier_analysis <- function(dataset_id, start_year, end_year, source) {
+# Define a function to run outliers analysis with a specified parameter Id
+run_outliers_analysis <- function(dataset_id, start_year, end_year) {
   # Import data
-  fytoplankton_data <- importBioticData(dataset_id, start = start_year, end = end_year, source = source)
-  tbl1 <- fytoplankton_data
+  Abiotic_data <- importAbioticData(dataset_id, start = start_year, end = end_year)
+  tbl1 <- Abiotic_data
   
   # Function to find outliers in a column
   find_outliers <- function(parameter, col_name) {
@@ -74,9 +75,14 @@ fytoplankton_outlier_analysis <- function(dataset_id, start_year, end_year, sour
 }
 
 # Example usage:
- result <- fytoplankton_outlier_analysis(1074, start_year = 2013, end_year = 2015, source = "imis")
+parameter_id <- 13592  # You can change this to any parameter Id you want to analyze
+start_year <- 2018
+end_year <- 2021
 
 
- print(result)
+
+result <- run_outliers_analysis(parameter_id, start_year, end_year)
+
+print(result)
 
  
