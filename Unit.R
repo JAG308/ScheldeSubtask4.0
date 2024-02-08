@@ -29,4 +29,4 @@ Units_qualityC(con2)
 
 # Now select parameter of interest.
 
-UnitQC %>% filter(UnitQC$originalParameterName == 'Name_of_your_parameter')
+UnitQC %>% filter(UnitQC$originalParameterName == 'Dieldrin')
