@@ -1,7 +1,16 @@
 ### Main code that withdraws all others functions and allows Quality Control of specific parameters.
+### Each section sources a function onto the script to run a quality control measurement over a specific parameter ID
 
-################# HEATMAPS ################
+    ############ Conection to the Schelde Monitor DB  #############
 
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/SQLconnection.R")
+
+con2 <- dbConnect(odbc::odbc(), "SQLServer_DS")
+
+
+    ################# HEATMAPS ################
+#The function assess the frequency of sampling of the given parameter over the time range specified in the function "importAbioticData"
+    
 source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/heatmaps.R")
 
 # Function heatmapsQC with a specified parameter Id
@@ -22,7 +31,8 @@ heatmap_figures <- run_heatmap_with_parameter(parameter_id)
 heatmap_figures
 
 
-###############  OUTLIERS  ###############
+   ###############  OUTLIERS  ###############
+# Run a statistical analysis to highlight outliers
 
 source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/Outliers_ParaID1074.R")
 
@@ -36,7 +46,8 @@ result <- run_outliers_analysis(parameter_id, start_year, end_year)
 print(result)
 
 
-################  Units  ###############
+   ################  Units  ###############
+# Get how many units are used to described certain parameter
 
 source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/Unit.R")
 
