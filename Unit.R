@@ -1,5 +1,10 @@
 # Once connected to the DB with connectionSQL
 # Retrieve table with parameter names and their unit counts. 
+# Install necessary packages
+library (tibble) 
+library(dplyr)
+
+# Retrieve table with parameter names and their unit counts. 
 
 Units_qualityC <- function(connection) {
   # SQL Query
@@ -13,11 +18,11 @@ WITH  alleparameters AS (
   FROM dbo.SerPar SP
   JOIN dbo.Parameter P ON SP.parameterId=P.id
   WHERE SP.originalParameterUnit<>P.unit)
-SELECT   originalParameterName, originalParameterUnit,COUNT(*) AS unitcount --COUNT(DISTINCT originalParameterUnit ),STRING_AGG(originalParameterUnit,',')
+SELECT   originalParameterName, parameterid, originalParameterUnit,COUNT(*) AS unitcount --COUNT(DISTINCT originalParameterUnit ),STRING_AGG(originalParameterUnit,',')
 FROM alleparameters
 --GROUP BY originalParameterName, parameterid, originalParameterUnit
-GROUP BY originalParameterName, originalParameterUnit
-ORDER BY originalParameterName, originalParameterUnit
+GROUP BY originalParameterName, originalParameterUnit, parameterid
+ORDER BY originalParameterName, originalParameterUnit, parameterid
 "
   
   resultUnit <- dbGetQuery(con2, queryUnit)
@@ -27,6 +32,7 @@ ORDER BY originalParameterName, originalParameterUnit
 
 Units_qualityC(con2)
 
+
 # Now select parameter of interest.
 
-UnitQC %>% filter(UnitQC$originalParameterName == 'Dieldrin')
+UnitQC %>% filter(UnitQC$parameterid == '414')
