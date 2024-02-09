@@ -30,8 +30,8 @@ heatmapsQC <- function() {
 }
 
 # Call the function to run the analysis
-result <- heatmapsQC()
+#result <- heatmapsQC()
 
 # Access the results
-result$tide_availability_figures
-result$heatmap_fyto
+#result$tide_availability_figures
+#result$heatmap_fyto
