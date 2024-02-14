@@ -75,14 +75,14 @@ run_outliers_analysis <- function(dataset_id, start_year, end_year) {
 }
 
 # Example usage:
-parameter_id <- 13592  # You can change this to any parameter Id you want to analyze
-start_year <- 2018
-end_year <- 2021
+#parameter_id <- 13592  # You can change this to any parameter Id you want to analyze
+#start_year <- 2018
+#end_year <- 2021
 
 
 
-result <- run_outliers_analysis(parameter_id, start_year, end_year)
+#result <- run_outliers_analysis(parameter_id, start_year, end_year)
 
-print(result)
+#print(result)
 
  
