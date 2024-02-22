@@ -139,7 +139,7 @@ ORDER BY latitude,longitude,stationName;
   
   # Crop the spatial object
   filtered_points2 <- st_crop(unique_stations22, xmin = 2.32, xmax = 5.25, ymin = 50.8, ymax = 52)
-  plot(filtered_points2$geometry)
+  
   # Extract coordinates left out
   left_out_points <- unique_stations2[!unique_stations22$geometry %in% filtered_points2$geometry | 
                                         !unique_stations22$geometry %in% filtered_points2$geometry, ]
@@ -173,7 +173,9 @@ ORDER BY latitude,longitude,stationName;
   cat("Unique stations", nrow(unique_stations3), "\n")
   #print(unique_stations3$station_name)
   
-  
+  #create a map
+  unique_stations_sf <- st_as_sf(unique_stations3, coords = c("longitude", "latitude"), crs = 4326)
+  mapview(unique_stations_sf, legend = NULL)
 }
 
 Station_QualityC()
