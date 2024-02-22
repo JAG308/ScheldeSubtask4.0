@@ -1,153 +1,179 @@
-######## Station names QC
+# Definitive script for station standarisation.
 
 #Once connected to the ScheldeMonitor DB with the SQL connection code
 # Retrieve quality control station table from the database.
 
-#Install necessary packages.
-
-#install.packages("tibble")
-#install.packages("dplyr")
-
-library(tibble)
-library(dplyr)
-
-
 Station_QualityC <- function(connection) {
-
-queryStation <- "
+  
+  #Install necessary packages.
+  
+  #install.packages("tibble")
+  #install.packages("dplyr")
+  #install.packages("dbscan")
+  #install.packages("DescTools")
+  library(ggplot2)
+  library(dbscan)
+  library(dplyr)
+  library(DescTools)
+  library(tibble)
+  library(dplyr)
+  
+  
+  queryStation <- "
 WITH location AS (
-    SELECT stationName,location.Lat AS latitude,location.Long AS longitude
+    SELECT id AS serieId,stationName,location.Lat AS latitude,location.Long AS longitude
     FROM Serie
     WHERE stationName IS NOT NULL
   UNION ALL
-    SELECT stationName,location.Lat AS latitude,location.Long as longitude
-    FROM ValAclass
+    SELECT SerPar.serieId,stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValAclass JOIN SerPar ON serParId = SerPar.id
     WHERE stationName IS NOT NULL
   UNION ALL
-    SELECT stationName,location.Lat AS latitude,location.Long as longitude
-    FROM ValAVariableStat
+    SELECT SerPar.serieId,stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValAVariableStat  JOIN SerPar ON serParId = SerPar.id
     WHERE stationName IS NOT NULL
   UNION ALL
-    SELECT stationName,location.Lat AS latitude,location.Long as longitude
-    FROM ValBclass
+    SELECT SerPar.serieId,stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValBclass JOIN SerPar ON  serParId = SerPar.id
     WHERE stationName IS NOT NULL
   UNION ALL
-    SELECT stationName,location.Lat AS latitude,location.Long as longitude
-    FROM ValBVariableStat
+    SELECT SerPar.serieId,stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValBVariableStat JOIN SerPar ON serParId = SerPar.id
     WHERE stationName IS NOT NULL
   UNION ALL
-    SELECT stationName,location.Lat AS latitude,location.Long as longitude
-    FROM ValXVariable
+    SELECT SerPar.serieId,stationName,location.Lat AS latitude,location.Long as longitude
+    FROM ValXVariable JOIN SerPar ON serParId = SerPar.id
     WHERE stationName IS NOT NULL
-
 ),rounded AS (
   SELECT stationName,
     -- atal cijfers na de komma: 4 = 5 a 10m
     CAST(latitude AS NUMERIC(10,4)) AS latitude,
     CAST(longitude AS NUMERIC(10,4)) AS longitude
   FROM location
+   JOIN  [dp_serie_dpcontext] dpc ON dpc.seriesid = serieId AND dpc.dataportalContext=1
   --Activeer om te begrenzen tot BE/NL, maar je verliest ook de 0 en null en onzinnige waarden
   --WHERE latitude BETWEEN 49.5 AND 53.6 AND longitude BETWEEN 2.5 AND 7.1
   )
-SELECT latitude,longitude,stationName,COUNT(*) AS aantal FROM rounded
+SELECT latitude,longitude,stationName FROM rounded
 GROUP BY latitude,longitude,stationName
 ORDER BY latitude,longitude,stationName;
 "
-
-resultStation <- dbGetQuery(con2, queryStation)
-StationQC <- as_tibble(resultStation)
-StationQC
-
-
-#### Now compare stations from your dataset with the stations StationQC.
-
-### Remove ~400 lines with NA values from DB Station list
-
-StationClean <- na.omit(StationQC)
-
-#Create bin with coordinates range
-bin_size <- 0.15
-
-#Create list where coordinates are summarized in bins and the most frequent station names representing them.
-
-StationClean <- StationClean %>%
-  mutate(lat_bin = cut(latitude, breaks = seq(floor(min(latitude)), ceiling(max(latitude)), bin_size), include.lowest = TRUE),
-         lon_bin = cut(longitude, breaks = seq(floor(min(longitude)), ceiling(max(longitude)), bin_size), include.lowest = TRUE))
-
-grouped_Station <- StationClean %>%
-  group_by(lat_bin, lon_bin) %>%
-  summarise(stationName = names(sort(table(stationName), decreasing = TRUE)[1]),  # Keep the most frequent station name
-            latitude = mean(latitude),
-            longitude = mean(longitude))
-
-grouped_Station
-
-# Standarise both tables so they have the same format.
-# Both tables should have the columns: 'latitude', 'longitude', 'stationName'
-
-SdStation <- grouped_Station %>% relocate(latitude, .before=lat_bin)
-SdStation <- SdStation %>% relocate(longitude, .before=lat_bin)
-SdStation <- SdStation %>% relocate(stationName, .before=lat_bin)
-SdStation <- SdStation[,1:3]
-
-StationQC <- StationQC[,1:3]
-
-#### Once the input table and the DB table look alike
-####### Now run the Quality Control
-
-# Assuming your dataframes are named SdStation and StationQC
-
-# Initialize a variable to count total mismatches
-total_mismatches <- 0
-
-# Initialize a list to store details of mismatches
-mismatch_details <- list()
-
-# Iterate over each row in StationQC
-for (i in 1:nrow(StationQC)) {
-  # Extract stationName and corresponding coordinates from StationQC
-  current_qc_station <- StationQC[i, ]
-  stationName_qc <- current_qc_station$stationName
-  lat_qc <- current_qc_station$latitude
-  lon_qc <- current_qc_station$longitude
   
-  # Find all rows in SdStation with the same stationName
-  corresponding_rows <- SdStation %>% filter(stationName == stationName_qc)
+  resultStation <- dbGetQuery(con2, queryStation)
+  StationQC <- as_tibble(resultStation)
+  StationQC
   
-  # Check if coordinates match
-  if (nrow(corresponding_rows) > 0) {
-    lat_sd <- corresponding_rows$latitude
-    lon_sd <- corresponding_rows$longitude
-    
-    # Check if any of the coordinates match
-    if (any(lat_sd == lat_qc & lon_sd == lon_qc, na.rm = TRUE)) {
-      # Coordinates match, continue to the next row in StationQC
-      next
-    }
-  }
+  ## Remove ~400 lines with NA values from the DB list of stations
   
-  # Update the total count of mismatches
-  total_mismatches <- total_mismatches + 1
+  StationClean <- na.omit(StationQC)
   
-  # Store details of mismatches
-  mismatch_details[[stationName_qc]] <- current_qc_station
+  # List these stations with NA values
+  
+  rows_with_na <- StationQC[rowSums(is.na(StationQC)) > 0, ]
+  
+  
+  # Extract station names from the filtered rows
+  station_names_with_na <- rows_with_na$stationName
+  
+  # Print message
+  cat("Stations with NA values:", length(station_names_with_na), "\n")
+  print(station_names_with_na)
+  
+  # Assuming your dataframe is named 'StationClean' with columns: station_name, latitude, longitude
+  
+  # Create a matrix of coordinates (latitude and longitude)
+  coords <- StationClean[, c("latitude", "longitude")]
+  
+  # Set the maximum distance between two points to be considered as part of the same cluster
+  # Adjust this epsilon value based on your preferences
+  epsilon <- 0.0005  # 0.0005 degrees equals to ~50m of distance. Stations placed at less than 50m distance from each other are considered as the same station.
+  
+  # Apply DBSCAN clustering
+  dbscan_result <- dbscan(coords, eps = epsilon, minPts = 1)  # minPts is the minimum number of points required to form a cluster
+  
+  # Extract cluster assignments
+  cluster_ids <- dbscan_result$cluster
+  
+  # Create a new dataframe with one record per unique station (cluster)
+  unique_stations <- data.frame(
+    station_name = StationClean$stationName,
+    cluster_id = cluster_ids
+  )
+  cluster_ids
+  # Remove duplicated stations based on cluster ID
+  unique_stations <- unique(unique_stations)
+  
+  # Optionally, you can calculate the centroid of each cluster if needed
+  centroids <- aggregate(coords, by = list(cluster_ids), FUN = mean)
+  colnames(centroids) <- c("cluster_id", "latitude", "longitude")
+  
+  # Merge centroids with unique stations dataframe if needed
+  unique_stations <- merge(unique_stations, centroids, by = "cluster_id", all.x = TRUE)
+  
+  # Remove duplicates
+  unique_stations2 <- unique(unique_stations[c("station_name", "latitude", "longitude")])
+  unique_stations2 <- unique_stations %>%
+    group_by(latitude, longitude) %>%
+    summarise(station_name = names(sort(table(station_name), decreasing = TRUE)[1])) %>%
+    ungroup()
+  
+  # Output the unique stations dataframe
+  print(unique_stations2)
+  
+  # Return update of number of stations
+  
+  cat("Stations within 50 meters of each other have been clustered, being considered as a unique station. From", 
+      nrow(StationClean), "stations in StationClean, to", 
+      nrow(unique_stations2), "unique stations after clustering.\n")
+  
+  
+  #### NOW WE FILTER THE STATIONS OUTSIDE OUR BOUNDING BOX
+  
+  
+  # Load required libraries
+  library(mapview)
+  library(sf)
+  
+  # Convert unique_stations2 to sf object
+  unique_stations22 <- st_as_sf(unique_stations2, coords = c('longitude', 'latitude'), crs = 4326)
+  
+  # Crop the spatial object
+  filtered_points2 <- st_crop(unique_stations22, xmin = 2.32, xmax = 5.25, ymin = 50.8, ymax = 52)
+  plot(filtered_points2$geometry)
+  # Extract coordinates left out
+  left_out_points <- unique_stations2[!unique_stations22$geometry %in% filtered_points2$geometry | 
+                                        !unique_stations22$geometry %in% filtered_points2$geometry, ]
+  
+  # Convert filtered_points2 to a data frame with three columns
+  
+  filtered_points_df <- unique_stations2[unique_stations22$geometry %in% filtered_points2$geometry | 
+                                           unique_stations22$geometry %in% filtered_points2$geometry, ]
+  
+  # Print the left out coordinates
+  cat("Stations outside the Schelde estuary area:", nrow(left_out_points), "\n")
+  print(left_out_points$station_name)
+  
+  # Print current number of stations left.
+  
+  cat("Total number of stations after removing NA, clustering them within 50m range, duplicated stations with same coordinates:", nrow(filtered_points_df), "\n")
+  
+  
+  # Delete stations named 'Westerschelde'
+  #filtered_points_dfWithout <- filtered_points_df %>% filter(station_name != 'Westerschelde')
+  
+  
+  ### Remove duplicates of station names. OPTIONAL
+  
+  unique_stations3 <- filtered_points_dfWithout[!duplicated(filtered_points_dfWithout$station_name), ]
+  duplicated_stations <- filtered_points_dfWithout[duplicated(filtered_points_dfWithout$station_name), ]
+  
+  cat("Duplicated station names", nrow(duplicated_stations), "\n")
+  #print(duplicated_stations$station_name)
+  
+  cat("Unique stations", nrow(unique_stations3), "\n")
+  #print(unique_stations3$station_name)
+  
+  
 }
 
-
-### Display details of each mismatch
-if (total_mismatches > 0) {
-  cat("Details of mismatched rows by station in StationQC:\n")
-  print(mismatch_details)
-  
-  
-  ### Display the total number of mismatches
-  cat("Total number of rows with mismatched coordinates: ", total_mismatches, "\n")
-  
-  
-}
-}
-
-
-# Function gives results after ~3 minutes
-Station_QualityC(con2)
-
+Station_QualityC()
