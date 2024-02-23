@@ -24,8 +24,9 @@ FROM alleparameters
 GROUP BY originalParameterName, originalParameterUnit, parameterid
 ORDER BY originalParameterName, originalParameterUnit, parameterid
 "
-}
+
   resultUnit <- dbGetQuery(con2, queryUnit)
+	}
   UnitQC <- as_tibble(resultUnit)
   UnitQC
 
