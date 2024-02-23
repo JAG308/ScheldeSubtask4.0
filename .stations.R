@@ -164,8 +164,8 @@ ORDER BY latitude,longitude,stationName;
   
   ### Remove duplicates of station names. OPTIONAL
   
-  unique_stations3 <- filtered_points_dfWithout[!duplicated(filtered_points_dfWithout$station_name), ]
-  duplicated_stations <- filtered_points_dfWithout[duplicated(filtered_points_dfWithout$station_name), ]
+  unique_stations3 <- filtered_points_df[!duplicated(filtered_points_df$station_name), ]
+  duplicated_stations <- filtered_points_df[duplicated(filtered_points_df$station_name), ]
   
   cat("Duplicated station names", nrow(duplicated_stations), "\n")
   #print(duplicated_stations$station_name)
