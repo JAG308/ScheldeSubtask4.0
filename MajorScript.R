@@ -45,7 +45,6 @@ result <- run_outliers_analysis(parameter_id, start_year, end_year)
 
 print(result)
 
-
    ################  Units  ###############
 # Get how many units are used to described certain parameter
 
@@ -61,7 +60,7 @@ source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/AphiaID.
 
 ##############  Stations #############
 
-
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/.stations.R")
 
 
 
