@@ -158,10 +158,6 @@ ORDER BY latitude,longitude,stationName;
   cat("Total number of stations after removing NA, clustering them within 50m range, duplicated stations with same coordinates:", nrow(filtered_points_df), "\n")
   
   
-  # Delete stations named 'Westerschelde'
-  #filtered_points_dfWithout <- filtered_points_df %>% filter(station_name != 'Westerschelde')
-  
-  
   ### Remove duplicates of station names. OPTIONAL
   
   unique_stations3 <- filtered_points_df[!duplicated(filtered_points_df$station_name), ]
