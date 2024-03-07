@@ -99,7 +99,7 @@ GROUP BY latitude, longitude, stationName,paramid
 ORDER BY latitude, longitude, stationName,paramid;
 "
 
-resultStation <- dbGetQuery(con2, queryStation)
+resultStation <- dbGetQuery(con2, queryStation1)
 StationQC <- as_tibble(resultStation)
 StationQC
 
