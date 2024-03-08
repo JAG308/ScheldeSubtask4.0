@@ -1,11 +1,11 @@
-
+#### Once connected to the DB with connectionSQL
 # Load necessary libraries
 library(usethis)
 library(devtools)
 devtools::install_github("scheldemonitor/scheldemonitoR")
 library(scheldemonitoR)
 
-# Define a function to run outliers analysis with a specified parameter Id
+# Define a function to run outliers analysis over a specified parameter Id
 run_outliers_analysis <- function(dataset_id, start_year, end_year) {
   # Import data
   Abiotic_data <- importAbioticData(dataset_id, start = start_year, end = end_year)

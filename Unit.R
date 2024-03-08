@@ -1,10 +1,10 @@
 # Once connected to the DB with connectionSQL
-# Retrieve table with parameter names and their unit counts. 
+# Retrieve table with all parameter names and the different units they have been measured on. 
 # Install necessary packages
 library (tibble) 
 library(dplyr)
 
-# Retrieve table with parameter names and their unit counts. 
+# Retrieve table with parameter names and their units.
 
 Units_qualityC <- function(connection) {
   # SQL Query
@@ -36,4 +36,4 @@ Units_qualityC(con2)
 
 # Now select parameter of interest.
 
-#UnitQC %>% filter(UnitQC$parameterid == '357')
+UnitQC %>% filter(UnitQC$parameterid == 1292) #Density

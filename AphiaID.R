@@ -1,10 +1,12 @@
+
 #### Taxonomic QualityControl
 ## Once connected to database with connnectionSQL code (con2).
-
+library(tibble)
 library(dplyr)
 library(worrms)
 
 AphiaID_QualityC <- function(connection) {
+  
   # SQL Query
   query_taxon <- "
 WITH naam_verschillend AS (

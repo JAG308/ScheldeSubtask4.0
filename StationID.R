@@ -1,5 +1,5 @@
 
-#Script to retrieve station's locations by parameter Id
+# Script to retrieve station's locations by parameter Id
 
 Station_IDplot<- function(connection) {
 
@@ -100,11 +100,13 @@ ORDER BY latitude, longitude, stationName,paramid;
 "
 
 
-# filter stations by ID
+# Retrieve dataset with station names, their coordinates and their parameter IDs measured by each one.
 
 resultStation1 <- dbGetQuery(con2, queryStation1)
 StationQC1 <- as_tibble(resultStation1)
 StationQC1
+
+# Join current dataset with the unique stations dataset obtained by the "Stations" QC script
 
 colnames(StationQC1)[3]<- 'station_name'
 Stations <- unique_stations3[,3]
@@ -113,6 +115,7 @@ MERGED <- inner_join(Stations, StationQC1, by = "station_name")
 MERGED <- MERGED[complete.cases(MERGED$longitude, MERGED$latitude), ]
 MERGED <- st_as_sf(MERGED, coords = c("longitude", "latitude"), crs = 4326)
 
+# Create function to map stations
 
 generate_map <- function(df, selected_paramid) {
   filtered_data <- df[df$paramid == selected_paramid, ]
@@ -121,6 +124,8 @@ generate_map <- function(df, selected_paramid) {
 }
 
 }
+
+# Run function and mapview() on parameter ID of interest.
 
 Station_IDplot()
 generate_map(MERGED, selected_paramid = 1292)
