@@ -1,4 +1,5 @@
-#### Once connected to the DB with connectionSQL
+## Run a statistical analysis to highlight outliers in your parameter ID dataset.
+# Once connected to the DB with connectionSQL
 # Load necessary libraries
 library(usethis)
 library(devtools)

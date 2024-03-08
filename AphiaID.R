@@ -1,6 +1,5 @@
-
-#### Taxonomic QualityControl
-## Once connected to database with connnectionSQL code (con2).
+## Taxonomic QualityControl
+# Once connected to database with connnectionSQL code (con2).
 library(tibble)
 library(dplyr)
 library(worrms)

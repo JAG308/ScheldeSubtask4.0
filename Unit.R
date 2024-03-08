@@ -1,5 +1,5 @@
+## Retrieve table with all parameter names and the different units they have been measured on. 
 # Once connected to the DB with connectionSQL
-# Retrieve table with all parameter names and the different units they have been measured on. 
 # Install necessary packages
 library (tibble) 
 library(dplyr)

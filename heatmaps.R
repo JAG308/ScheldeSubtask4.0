@@ -1,5 +1,5 @@
-
-#install.packages("devtools")
+## Assessing the frequency of sampling of the given parameter over the time range specified in the function "importAbioticData"
+# install.packages
 library(devtools)
 
 devtools::install_github("scheldemonitor/scheldemonitoR")

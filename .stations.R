@@ -1,6 +1,6 @@
-# Definitive script for station standarisation.
+## Quality control script to remove duplicated and misplaced sampling stations of the Schelde Monitor DB
+# Once connected to the DB with connectionSQL
 
-#Once connected to the ScheldeMonitor DB with the SQL connection code
 # Retrieve quality control station table from the database.
 
 Station_QualityC <- function(connection) {
@@ -71,7 +71,6 @@ ORDER BY latitude,longitude,stationName;
   
   rows_with_na <- StationQC[rowSums(is.na(StationQC)) > 0, ]
   
-  
   # Extract station names from the filtered rows
   station_names_with_na <- rows_with_na$stationName
   
@@ -86,7 +85,7 @@ ORDER BY latitude,longitude,stationName;
   
   # Set the maximum distance between two points to be considered as part of the same cluster
   # Adjust this epsilon value based on your preferences
-  epsilon <- 0.0005  # 0.0005 degrees equals to ~50m of distance. Stations placed at less than 50m distance from each other are considered as the same station.
+  epsilon <- 0.0005  # 0.0005 degrees equals to ~50m of distance = Stations placed at less than 50m distance from each other are considered as the same station.
   
   # Apply DBSCAN clustering
   dbscan_result <- dbscan(coords, eps = epsilon, minPts = 1)  # minPts is the minimum number of points required to form a cluster
@@ -127,7 +126,7 @@ ORDER BY latitude,longitude,stationName;
       nrow(unique_stations2), "unique stations after clustering.\n")
   
   
-  #### NOW WE FILTER THE STATIONS OUTSIDE OUR BOUNDING BOX
+  #### NOW FILTER THE STATIONS OUTSIDE OUR BOUNDING BOX
   
   
   # Load required libraries
@@ -144,7 +143,7 @@ ORDER BY latitude,longitude,stationName;
   left_out_points <- unique_stations2[!unique_stations22$geometry %in% filtered_points2$geometry | 
                                         !unique_stations22$geometry %in% filtered_points2$geometry, ]
   
-  # Convert filtered_points2 to a data frame with three columns
+  # Convert filtered_points2 to a data frame
   
   filtered_points_df <- unique_stations2[unique_stations22$geometry %in% filtered_points2$geometry | 
                                            unique_stations22$geometry %in% filtered_points2$geometry, ]
@@ -158,7 +157,7 @@ ORDER BY latitude,longitude,stationName;
   cat("Total number of stations after removing NA, clustering them within 50m range, duplicated stations with same coordinates:", nrow(filtered_points_df), "\n")
   
   
-  ### Remove duplicates of station names. OPTIONAL
+  ### Remove duplicates of station names. 
   
   unique_stations3 <- filtered_points_df[!duplicated(filtered_points_df$station_name), ]
   duplicated_stations <- filtered_points_df[duplicated(filtered_points_df$station_name), ]
