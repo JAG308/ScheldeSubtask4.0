@@ -48,14 +48,22 @@ FROM boeien.dbo.Havengeul_GSM_EXOData
     }
   }
   
+  # Return the results
+  return(outlier_results)
 }
 
 ## Print the data frame containing outliers locations
 ##Obtain the number of rows where there has been an outlier per column
-print(outlier_results)
 
+sink(file = 'outliers.txt')
+print(outlier_results)
+sink(file = NULL)
 #Obtain a table with a summary of the total outliers detected per column
+sink(file = 'outliersTable.txt')
 table(outlier_results$ColumnName)
+sink(file = NULL)
+
+
 
 
 
