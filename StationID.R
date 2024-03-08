@@ -1,6 +1,6 @@
-
-# Script to retrieve station's locations by parameter Id
-
+## Script to retrieve station's locations by parameter Id
+# Once connected to the DB with connectionSQL
+# And after having run "Stations" script
 Station_IDplot<- function(connection) {
 
 #install.packages("tibble")
