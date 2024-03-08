@@ -36,7 +36,7 @@ heatmap_figures
 
 # Run a statistical analysis to highlight outliers in your parameter ID dataset.
 
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/Outliers_ParaID1074.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/OutliersFinder.R")
 
 # Example usage:
 parameter_id <- 357  # You can change this to any parameter Id you want to analyze
