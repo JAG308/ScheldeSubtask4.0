@@ -3,7 +3,7 @@
 
     ############ Connection to the Schelde Monitor DB  #############
 
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/SQLconnection.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/R/SQLconnection.R")
 
 con2 <- dbConnect(odbc::odbc(), "SQLServer_DS")
 
@@ -12,7 +12,7 @@ con2 <- dbConnect(odbc::odbc(), "SQLServer_DS")
 
 #The function assess the frequency of sampling of the given parameter over the time range specified in the function "importAbioticData"
     
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/heatmaps.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/R/heatmaps.R")
 
 # Function heatmapsQC with a specified parameter Id
 run_heatmap_with_parameter <- function(parameter_id) {
@@ -36,7 +36,7 @@ heatmap_figures
 
 # Run a statistical analysis to highlight outliers in your parameter ID dataset.
 
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/OutliersFinder.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/R/OutliersFinder.R")
 
 # Example usage:
 parameter_id <- 357  # You can change this to any parameter Id you want to analyze
@@ -51,7 +51,7 @@ print(result)
 
 # Returns how many units are used to described certain parameter
 
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/Unit.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/R/Unit.R")
 
 UnitQC %>% filter(UnitQC$parameterid == '357')
 
@@ -60,14 +60,14 @@ UnitQC %>% filter(UnitQC$parameterid == '357')
 
 # Assessment of the AphiaIDs of the whole database and tests returns the species with AphiaIDs not matching with the Aphias from WORMS DB
 
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/AphiaID.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/R/AphiaID.R")
 
 
 ##############  Stations #############
 
 # Assessment and standarisation of all stationss present in the DB removing duplicates in coordinates, station names, and misplaces stations.
 
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/.stations.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/R/.stations.R")
 
 mapview(unique_stations_sf, legend = NULL)
 
@@ -75,6 +75,6 @@ mapview(unique_stations_sf, legend = NULL)
 
 # Retrieve those stations where the parameter targeted has been measured.
 
-source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/StationID.R")
+source("https://raw.githubusercontent.com/JAG308/ScheldeSubtask4.0/main/R/StationID.R")
 
 generate_map(MERGED, selected_paramid = 357)
